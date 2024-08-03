@@ -9,7 +9,7 @@
 
     <link rel="stylesheet" href="style.css" />
     <script type="text/javascript" src="CogTrashSuggester.js"></script>
-    <script type="text/javascript" src="Solver.js"></script>
+    <script type="text/javascript" src="MySolver.js"></script>
     <script type="text/javascript" src="CogInventory.js"></script>
     <script type="text/javascript" src="BoardRenderer.js"></script>
     <script type="text/javascript" src="PlayerRenderer.js"></script>
@@ -166,7 +166,7 @@
 
       window.boardRenderer = new BoardRenderer(ROWS, COLUMNS, "board");
       window.spareRenderer = new BoardRenderer(40, 3, "spare", 5);
-      window.solver = new Solver();
+      window.solver = new MySolver();
       window.cogInvetory = new CogInventory();
 
       window.sparePage = new Paginator("sparepage", window.spareRenderer._pageCount, 1);
@@ -457,9 +457,9 @@
         document.getElementById("start").innerText = `Starting BuildRate: ${start.score.buildRate}, EXP: ${start.score.expBonus}, Flaggy: ${start.score.flaggy}`;
 
         const selectedOptimizeMode = Array.from(document.getElementsByName('optimizeMode')).find((option) => option.checked).value;
-        solver.setWeights(selectedOptimizeMode);
+        solver.setScoreFunction(selectedOptimizeMode);
 
-        const best = await solver.solve(cogInvetory, solveTime);
+        const best = await solver.solve(cogInvetory);
         document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}`;
         
         document.getElementById("buildrate").innerText = `${mmoifyNumber(best.score.buildRate - start.score.buildRate)}/HR`;
