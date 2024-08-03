@@ -2,6 +2,27 @@ function yield() {
   return new Promise(r => setTimeout(r, 1));
 }
 
+class Util {
+  static generateCombinations(a, b) {
+    let result = [];
+
+    function combine(start, chosen) {
+      if (chosen.length === b) {
+        result.push([...chosen]);
+        return;
+      }
+      for (let i = start; i < a; i++) {
+        chosen.push(i);
+        combine(i + 1, chosen);
+        chosen.pop();
+      }
+    }
+
+    combine(0, []);
+    return result;
+  }
+}
+
 class MySolver {
   constructor(mode) {
     this.setScoreFunction(mode)
@@ -36,82 +57,11 @@ class MySolver {
     this.fixCharaAndAroundCogs(state);
 
     this.placeRowCogs(state);
+    const temp1_inventory = this.placeColCogs(state);
 
-    this.optimizeRestPos(state);
-    this.removeUselesMoves(inventory);
-    return state;
-    /*
-    if (inventory.flagPose.length === 0) {
-      // No flaggs placed means no use for flaggy rate
-      this.weights.flaggy = 0;
-    }
-    console.log("Solving with goal:", this.weights);
-    let lastYield = Date.now();
-    let state = inventory.clone();
-    const solutions = [state];
-    const startTime = Date.now();
-    const allSlots = inventory.availableSlotKeys;
-    let counter = 0;
-    let currentScore = this.getScoreSum(state.score);
-
-    console.log("Trying to optimize");
-    while (Date.now() - startTime < solveTime) {
-      if (Date.now() - lastYield > 100) {
-        // Prevent UI from freezing with very high solve times
-        await Solver._yield();
-        lastYield = Date.now();
-      }
-      counter++;
-      if (counter % 10000 === 0) {
-        state = inventory.clone();
-        this.shuffle(state);
-        currentScore = this.getScoreSum(state.score);
-        solutions.push(state);
-      }
-      const slotKey = allSlots[Math.floor(Math.random() * allSlots.length)];
-      // Moving a cog to an empty space changes the list of cog keys, so we need to re-fetch this
-      const allKeys = state.cogKeys;
-      const cogKey = allKeys[Math.floor(Math.random() * allKeys.length)];
-      const slot = state.get(slotKey);
-      const cog = state.get(cogKey);
-
-      if (slot.fixed || cog.fixed || cog.position().location === "build") continue;
-      state.move(slotKey, cogKey);
-      const scoreSumUpdate = this.getScoreSum(state.score);
-      if (scoreSumUpdate > currentScore) {
-        currentScore = scoreSumUpdate;
-      } else {
-        state.move(slotKey, cogKey);
-      }
-    }
-    console.log(`Tried ${counter} switches`);
-    const scores = solutions.map((s) => this.getScoreSum(s.score));
-    console.log(`Made ${solutions.length} different attempts with final scores: ${scores}`);
-    const bestIndex = scores.indexOf(scores.reduce((a, b) => Math.max(a, b)));
-    let best = solutions[bestIndex];
-    if (g.best === null || this.getScoreSum(g.best.score) < scores[bestIndex]) {
-      console.log("Best solution was number", bestIndex);
-      g.best = best;
-    } else {
-      best = g.best;
-    }
-    this.removeUselesMoves(best);
-    return best;*/
-  }
-
-  shuffle(inventory, n = 500) {
-    const allSlots = inventory.availableSlotKeys;
-    for (let i = 0; i < n; i++) {
-      const slotKey = allSlots[Math.floor(Math.random() * allSlots.length)];
-      // Moving a cog to an empty space changes the list of cog keys, so we need to re-fetch this
-      const allKeys = inventory.cogKeys;
-      const cogKey = allKeys[Math.floor(Math.random() * allKeys.length)];
-      const slot = inventory.get(slotKey);
-      const cog = inventory.get(cogKey);
-
-      if (slot.fixed || cog.fixed || cog.position().location === "build") continue;
-      inventory.move(slotKey, cogKey);
-    }
+    this.optimizeRestPos(temp1_inventory);
+    this.removeUselesMoves(temp1_inventory);
+    return temp1_inventory;
   }
 
   placeRowCogs(inventory) {
@@ -133,6 +83,42 @@ class MySolver {
         }
       }
     }
+  }
+
+  greedyPlaceCogs(inventory, placeKeys, cogType) {
+    const combinations = Util.generateCombinations(placeKeys.length, placeKeys.length / 2);
+
+    let best = null;;
+    for (const combination of combinations) {
+      for (let i = 0; i < placeKeys.length; i++) {
+        if (!combination.includes(i)) {
+          combination.push(i);
+        }
+      }
+
+      let temp_inventory = inventory.clone();
+      const colCogs = Object.values(temp_inventory.cogs)
+        .filter(cog => cog.boostRadius === cogType)
+        .sort(this.CompareCog);
+
+      for (let i = 0; i < combination.length; i++) {
+        const colCog = colCogs[i];
+        const toKey = placeKeys[combination[i]];
+        temp_inventory.move(colCog.key, toKey);
+        temp_inventory.toFixed(toKey);
+      }
+
+      if (best === null || this.ScoreFunction(best) < this.ScoreFunction(temp_inventory)) {
+        best = temp_inventory;
+      }
+    }
+
+    return best;
+  }
+
+  placeColCogs(inventory) {
+    const placeKeys = [5, 77, 89, 6, 78, 90];
+    return this.greedyPlaceCogs(inventory, placeKeys, "column");
   }
 
   // I assume that characters exist at keys 41 and 42, 
