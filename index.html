@@ -148,10 +148,6 @@
 
       const ROWS = 8;
       const COLUMNS = 12;
-      const OPTIMIZABLE = ["buildRate", "expBonus", "flaggy"];
-      
-      const getInput = (id) => Number.parseInt(document.getElementById(id).value);
-      const getFlaggyShop = getInput.bind(null, "flaggyShop");
 
       const createElem = function createElem(tagName, style=undefined) {
         const elem = document.createElement(tagName);
@@ -459,7 +455,10 @@
         let start = cogInvetory.clone();
 
         document.getElementById("start").innerText = `Starting BuildRate: ${start.score.buildRate}, EXP: ${start.score.expBonus}, Flaggy: ${start.score.flaggy}`;
-        solver.setWeights(getInput("buildRate"), getInput("expBonus"), getInput("flaggy"));
+
+        const selectedOptimizeMode = Array.from(document.getElementsByName('optimizeMode')).find((option) => option.checked).value;
+        solver.setWeights(selectedOptimizeMode);
+
         const best = await solver.solve(cogInvetory, solveTime);
         document.getElementById("end").innerText = `Final BuildRate: ${best.score.buildRate}, EXP: ${best.score.expBonus}, Flaggy: ${best.score.flaggy}`;
         
