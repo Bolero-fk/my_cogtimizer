@@ -338,6 +338,7 @@ class CogInventory {
   get score() {
     if (this._score !== null) return this._score;
 
+    const bonusGrid = this.calcBonusGrid();
     const result = {
       buildRate: 0,
       expBonus: 0,
@@ -346,8 +347,76 @@ class CogInventory {
       flagBoost: 0
     };
 
+    // Bonus grid done, now we can sum everything up
+    for (let key of this.availableSlotKeys) {
+      const entry = this.get(key);
+      result.buildRate += entry.buildRate || 0;
+      result.expBonus += entry.expBonus || 0;
+      result.flaggy += entry.flaggy || 0;
+      const pos = entry.position();
+      const bonus = bonusGrid[pos.y][pos.x];
+      const b = (bonus.buildRate || 0) / 100;
+      result.buildRate += Math.ceil((entry.buildRate || 0) * b);
+      if (entry.isPlayer) {
+        result.expBoost += bonus.expBoost || 0;
+      }
+      const f = (bonus.flaggy || 0) / 100;
+      result.flaggy += Math.ceil((entry.flaggy || 0) * f);
+    }
+    for (let key of this.flagPose) {
+      const entry = this.get(key);
+      const pos = entry.position();
+      const bonus = bonusGrid[pos.y][pos.x];
+      result.flagBoost += bonus.flagBoost || 0;
+    }
+    result.flaggy = Math.floor(result.flaggy * (1 + this.flaggyShopUpgrades * 0.5));
+    return this._score = result;
+  }
+
+  calcOnePlayerScore(key) {
+    const bonusGrid = this.calcBonusGrid();
+
+    const result = {
+      buildRate: 0,
+      expBonus: 0,
+      flaggy: 0,
+      expBoost: 0,
+      flagBoost: 0
+    };
+
+    if (96 <= key || !this.get(key).isPlayer) return result;
+
+    // Bonus grid done, now we can sum everything up
+    {
+      const entry = this.get(key);
+      console.log(entry);
+      result.buildRate += entry.buildRate || 0;
+      result.expBonus += entry.expBonus || 0;
+      result.flaggy += entry.flaggy || 0;
+      const pos = entry.position();
+      const bonus = bonusGrid[pos.y][pos.x];
+      const b = (bonus.buildRate || 0) / 100;
+      result.buildRate += Math.ceil((entry.buildRate || 0) * b);
+      result.expBoost += bonus.expBoost || 0;
+
+      const f = (bonus.flaggy || 0) / 100;
+      result.flaggy += Math.ceil((entry.flaggy || 0) * f);
+    }
+
+    return result;
+  }
+
+  calcBonusGrid() {
+    const initialEffects = {
+      buildRate: 0,
+      expBonus: 0,
+      flaggy: 0,
+      expBoost: 0,
+      flagBoost: 0
+    };
+
     const board = this.board;
-    const bonusGrid = Array(INV_ROWS).fill(0).map(() => { return Array(INV_COLUMNS).fill(0).map(() => { return { ...result } })});
+    const bonusGrid = Array(INV_ROWS).fill(0).map(() => { return Array(INV_COLUMNS).fill(0).map(() => { return { ...initialEffects } }) });
     for (let key of this.availableSlotKeys) {
       const entry = this.get(key);
       if (!entry.boostRadius) continue;
@@ -410,31 +479,8 @@ class CogInventory {
         bonus.flagBoost += entry.flagBoost         || 0;
       }
     }
- 
-    // Bonus grid done, now we can sum everything up
-    for (let key of this.availableSlotKeys) {
-      const entry = this.get(key);
-      result.buildRate += entry.buildRate || 0;
-      result.expBonus += entry.expBonus || 0;
-      result.flaggy += entry.flaggy || 0;
-      const pos = entry.position();
-      const bonus = bonusGrid[pos.y][pos.x];
-      const b = (bonus.buildRate || 0) / 100;
-      result.buildRate += Math.ceil((entry.buildRate || 0) * b);
-      if (entry.isPlayer) {
-        result.expBoost += bonus.expBoost || 0;
-      }
-      const f = (bonus.flaggy || 0) / 100;
-      result.flaggy += Math.ceil((entry.flaggy || 0) * f);
-    }
-    for (let key of this.flagPose) {
-      const entry = this.get(key);
-      const pos = entry.position();
-      const bonus = bonusGrid[pos.y][pos.x];
-      result.flagBoost += bonus.flagBoost || 0;
-    }
-    result.flaggy = Math.floor(result.flaggy * (1 + this.flaggyShopUpgrades * 0.5));
-    return this._score = result;
+
+    return bonusGrid;
   }
   
   move(pos1, pos2) {
