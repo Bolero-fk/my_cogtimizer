@@ -30,6 +30,8 @@ class MySolver {
 
   async solve(inventory) {
     const state = inventory.clone();
+
+    this.fixCharaAndAroundCogs(state);
     this.optimizeRestPos(state);
     this.removeUselesMoves(inventory);
     return state;
@@ -105,6 +107,19 @@ class MySolver {
       if (slot.fixed || cog.fixed || cog.position().location === "build") continue;
       inventory.move(slotKey, cogKey);
     }
+  }
+
+  // I assume that characters exist at keys 41 and 42, 
+  // and that there are Yang cogs around the characters.
+  fixCharaAndAroundCogs(inventory) {
+    inventory.toFixed(29);
+    inventory.toFixed(30);
+    inventory.toFixed(40);
+    inventory.toFixed(41);
+    inventory.toFixed(42);
+    inventory.toFixed(43);
+    inventory.toFixed(53);
+    inventory.toFixed(54);
   }
 
   optimizeRestPos(inventory) {

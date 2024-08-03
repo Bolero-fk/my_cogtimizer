@@ -461,4 +461,14 @@ class CogInventory {
 			this.cogs[pos1].key = pos1;
 		}
   }
+
+  toFixed(key) {
+    let cog = this.get(key);
+    if (cog.fixed) {
+      return;
+    }
+
+    this.availableSlotKeys = this.availableSlotKeys.filter(availableKey => availableKey !== key);
+    cog.fixed = true;
+  }
 }
