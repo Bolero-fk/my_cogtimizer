@@ -9,19 +9,21 @@ class MySolver {
 
   setScoreFunction(mode) {
     if (mode === "buildRate") {
-      this.ScoreFunction = function (charaScore) {
-        return charaScore.Characters.reduce((sum, chara) => sum + chara.buildRate, 0);
+      this.ScoreFunction = function (inventory) {
+        const charaScores = [inventory.calcOnePlayerScore(41), inventory.calcOnePlayerScore(42)]
+        return charaScores.reduce((sum, score) => sum + score.buildRate, 0);
       };
+
+      this.CompareCog = function (a, b) { return (Number(b.buildRadiusBoost) || 0) - (Number(a.buildRadiusBoost) || 0) }; 
     }
     else if (mode === "playerEXP") {
-      this.ScoreFunction = function (charaScore) {
-        return charaScore.Characters.reduce((sum, chara) => Math.min(sum, chara.exp), Number.MAX_SAFE_INTEGER);
+      this.ScoreFunction = function (inventory) {
+        const charaScores = [inventory.calcOnePlayerScore(41), inventory.calcOnePlayerScore(42)]
+        return charaScores.reduce((sum, score) => Math.min(sum, score.expBoost), Number.MAX_SAFE_INTEGER);
       };
-    }
-  }
 
-  getScoreSum(score) {
-    return this.ScoreFunction(score);
+      this.CompareCog = function (a, b) { return (Number(b.expRadiusBoost) || 0) - (Number(a.expRadiusBoost) || 0) };
+    }
   }
 
   static _yield() {
@@ -32,6 +34,9 @@ class MySolver {
     const state = inventory.clone();
 
     this.fixCharaAndAroundCogs(state);
+
+    this.placeRowCogs(state);
+
     this.optimizeRestPos(state);
     this.removeUselesMoves(inventory);
     return state;
@@ -109,17 +114,34 @@ class MySolver {
     }
   }
 
+  placeRowCogs(inventory) {
+    const placeKeys = [36, 37, 38, 47, 46, 45, 39, 44];
+
+    const rowCogs = Object.values(inventory.cogs)
+      .filter(cog => cog.boostRadius === "row")
+      .sort(this.CompareCog);
+
+    for (let i = 0; i < placeKeys.length; i++) {
+      const rowCog = rowCogs[i];
+      for (const placeKey of placeKeys) {
+        if (inventory.get(placeKey).fixed) continue;
+
+        if (this.CompareCog(rowCog, inventory.get(placeKey)) >= 0) {
+          inventory.move(placeKey, rowCog.key);
+          inventory.toFixed(placeKey);
+          break;
+        }
+      }
+    }
+  }
+
   // I assume that characters exist at keys 41 and 42, 
   // and that there are Yang cogs around the characters.
   fixCharaAndAroundCogs(inventory) {
-    inventory.toFixed(29);
-    inventory.toFixed(30);
-    inventory.toFixed(40);
-    inventory.toFixed(41);
-    inventory.toFixed(42);
-    inventory.toFixed(43);
-    inventory.toFixed(53);
-    inventory.toFixed(54);
+    const keysToFix = [29, 30, 40, 41, 42, 43, 53, 54];
+    for (const keyToFix of keysToFix) {
+      inventory.toFixed(keyToFix);
+    }
   }
 
   optimizeRestPos(inventory) {
@@ -132,8 +154,8 @@ class MySolver {
         .map(key => inventory.get(key));
 
       const maxExpCog = spareCogs.reduce((maxCog, currentCog) => {
-        const maxCogExp = isNaN(maxCog.expBonus) ? 0 : maxCog.expBonus;
-        const currentCogExp = isNaN(currentCog.expBonus) ? 0 : currentCog.expBonus;
+        const maxCogExp = Number(maxCog.expBonus) || 0;
+        const currentCogExp = Number(currentCog.expBonus) || 0;
         return (currentCogExp > maxCogExp) ? currentCog : maxCog;
       }, spareCogs[0]);
 

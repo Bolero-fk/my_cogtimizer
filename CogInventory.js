@@ -389,7 +389,6 @@ class CogInventory {
     // Bonus grid done, now we can sum everything up
     {
       const entry = this.get(key);
-      console.log(entry);
       result.buildRate += entry.buildRate || 0;
       result.expBonus += entry.expBonus || 0;
       result.flaggy += entry.flaggy || 0;
