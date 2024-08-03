@@ -79,24 +79,11 @@
         <div class="border" id="border"></div>
         <div id="settings" style="display: none;">
           <p>
-            <label for="flaggyShop">Gem Shop Flaggy upgrades</label><br />
-            <input type="number" id="flaggyShop" value="0" style="width:6ch" disabled=true></input>
-          </p>
-          <p>
-            <label for="buildRate">Build rate score weight</label><br />
-            <input type="number" id="buildRate" value="2" style="width:6ch"></input>
-          </p>
-          <p>
-            <label for="expBonus">EXP Bonus score weight</label><br />
-            <input type="number" id="expBonus" value="50" style="width:6ch"></input>
-          </p>
-          <p>
-            <label for="flaggy">Flaggy rate score weight</label><br />
-            <input type="number" id="flaggy" value="5" style="width:6ch"></input>
-          </p>
-          <p>
-            <label for="solveTime">Solve times (ms)</label><br />
-            <input type="number" id="solveTime" value="2500" style="width:10ch"></input>
+            <label for="optimizeMode">Optimize Mode</label><br />
+            <input type="radio" id="buildRateOption" name="optimizeMode" value="buildRate" checked>
+            <label for="option1">Build Rate</label>
+            <input type="radio" id="expOption" name="optimizeMode" value="playerEXP">
+            <label for="option2">Player Exp</label>
           </p>
           <h4>Misc.</h4>
           <hr />
@@ -356,8 +343,6 @@
         cogInvetory.load(save);
         CogTrashSuggester.suggestTrash(cogInvetory);
         console.log("Loading");
-        // Fetch Gem-Shop flaggy upgrades
-        document.getElementById("flaggyShop").value = cogInvetory.flaggyShopUpgrades;
         sparePage.goto(0);
 
         const maxKey = Object.values(cogInvetory.cogs).reduce((max, cog) => {
