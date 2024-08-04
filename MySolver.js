@@ -59,9 +59,13 @@ class MySolver {
     this.placeRowCogs(state);
     const temp1_inventory = this.placeColCogs(state);
     const temp2_inventory = this.placeCornersCogs(temp1_inventory);
+    this.placeDownCogs(temp2_inventory);
+    this.placeRightCogs(temp2_inventory);
+    this.placeLeftCogs(temp2_inventory);
+    this.placeUpCogs(temp2_inventory);
 
     this.optimizeRestPos(temp2_inventory);
-    this.removeUselesMoves(temp2_inventory);
+    // this.removeUselesMoves(temp5_inventory);
     return temp2_inventory;
   }
 
@@ -108,13 +112,27 @@ class MySolver {
         tempInventory.toFixed(toKey);
       }
 
-      if (best === null || this.ScoreFunction(best) < this.ScoreFunction(tempInventory)) {
+      if (this.ScoreFunction(best) < this.ScoreFunction(tempInventory)) {
         best = tempInventory;
       }
     }
 
     return best;
   }
+
+  greedyPlaceCogs2(inventory, placeKeys, cogType) {
+    console.log(cogType, placeKeys);
+
+    const cogs = Object.values(inventory.cogs)
+      .filter(cog => cog.boostRadius === cogType)
+      .sort(this.CompareCog);
+
+    for (let i = 0; i < Math.min(placeKeys.length, cogs.length); i++) {
+      inventory.move(cogs[i].key, placeKeys[i]);
+      inventory.toFixed(placeKeys[i]);
+    }
+  }
+
 
   placeColCogs(inventory) {
     const placeKeys = [5, 77, 89, 6, 78, 90];
@@ -124,6 +142,32 @@ class MySolver {
   placeCornersCogs(inventory) {
     const placeKeys = [15, 20, 63, 68];
     return this.greedyPlaceCogs(inventory, placeKeys, "corners");
+  }
+
+  placeDownCogs(inventory) {
+    const placeKeys = [17, 18, 16, 19];
+    return this.greedyPlaceCogs2(inventory, placeKeys, "down");
+  }
+
+  placeRightCogs(inventory) {
+    const placeKeys = [28, 51, 27, 52];
+    if (inventory.unFixedKeys.includes(39)) {
+      placeKeys.push(39);
+    }
+    return this.greedyPlaceCogs2(inventory, placeKeys, "right");
+  }
+
+  placeLeftCogs(inventory) {
+    const placeKeys = [31, 55, 32, 56];
+    if (inventory.unFixedKeys.includes(44)) {
+      placeKeys.push(44);
+    }
+    return this.greedyPlaceCogs2(inventory, placeKeys, "left");
+  }
+
+  placeUpCogs(inventory) {
+    const placeKeys = [65, 66, 64, 67];
+    return this.greedyPlaceCogs2(inventory, placeKeys, "up");
   }
 
   // I assume that characters exist at keys 41 and 42, 
