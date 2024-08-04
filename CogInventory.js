@@ -352,7 +352,7 @@ class CogInventory {
     };
 
     // Bonus grid done, now we can sum everything up
-    for (let key of this.unFixedKeys) {
+    for (let key of this.availableSlotKeys) {
       const entry = this.get(key);
       result.buildRate += entry.buildRate || 0;
       result.expBonus += entry.expBonus || 0;
