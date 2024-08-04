@@ -57,16 +57,14 @@ class MySolver {
     this.fixCharaAndAroundCogs(state);
 
     this.placeRowCogs(state);
+
     const temp1_inventory = this.placeColCogs(state);
     const temp2_inventory = this.placeCornersCogs(temp1_inventory);
-    this.placeDownCogs(temp2_inventory);
-    this.placeRightCogs(temp2_inventory);
-    this.placeLeftCogs(temp2_inventory);
-    this.placeUpCogs(temp2_inventory);
+    const temp3_inventory = this.placeRestBoostCogs(temp2_inventory);
 
-    this.optimizeRestPos(temp2_inventory);
-    // this.removeUselesMoves(temp5_inventory);
-    return temp2_inventory;
+    this.optimizeRestPos(temp3_inventory);
+    this.removeUselesMoves(temp3_inventory);
+    return temp3_inventory;
   }
 
   placeRowCogs(inventory) {
@@ -87,7 +85,7 @@ class MySolver {
 
       const tempInventory = inventory.clone();
       const cogs = Object.values(tempInventory.cogs)
-        .filter(cog => cog.boostRadius === cogType && this.CompareCog(cog, new Cog()) != 0)
+        .filter(cog => cog.boostRadius === cogType)
         .sort(this.CompareCog);
 
       for (let i = 0; i < Math.min(combination.length, cogs.length); i++) {
@@ -105,16 +103,48 @@ class MySolver {
   }
 
   greedyPlaceCogs2(inventory, placeKeys, cogType) {
-    console.log(cogType, placeKeys);
+    placeKeys = placeKeys.filter(key => inventory.unFixedKeys.includes(key));
+
 
     const cogs = Object.values(inventory.cogs)
-      .filter(cog => cog.boostRadius === cogType && this.CompareCog(cog, new Cog()) != 0)
+      .filter(cog => cog.boostRadius === cogType)
       .sort(this.CompareCog);
 
     for (let i = 0; i < Math.min(placeKeys.length, cogs.length); i++) {
       inventory.move(cogs[i].key, placeKeys[i]);
       inventory.toFixed(placeKeys[i]);
     }
+  }
+
+  placeRestBoostCogs(inventory) {
+    const placeKeys = [17, 18, 28, 51, 31, 55, 65, 66];
+
+    let best = inventory;
+    for (let i1 = 0; i1 < placeKeys.length; i1++) {
+      for (let i2 = i1 + 1; i2 < placeKeys.length; i2++) {
+
+        const tempInventory = inventory.clone();
+        const yangCogs = Object.values(inventory.cogs)
+          .filter(cog => cog.boostRadius === "around" && !cog.fixed)
+
+        tempInventory.move(yangCogs[0].key, placeKeys[i1]);
+        tempInventory.toFixed(placeKeys[i1]);
+
+        tempInventory.move(yangCogs[1].key, placeKeys[i2]);
+        tempInventory.toFixed(placeKeys[i2]);
+
+        this.placeDownCogs(tempInventory);
+        this.placeRightCogs(tempInventory);
+        this.placeLeftCogs(tempInventory);
+        this.placeUpCogs(tempInventory);
+
+        if (this.ScoreFunction(best) < this.ScoreFunction(tempInventory)) {
+          best = tempInventory;
+        }
+      }
+    }
+
+    return best;
   }
 
 
@@ -135,17 +165,11 @@ class MySolver {
 
   placeRightCogs(inventory) {
     const placeKeys = [28, 51, 27, 52];
-    if (inventory.unFixedKeys.includes(39)) {
-      placeKeys.push(39);
-    }
     return this.greedyPlaceCogs2(inventory, placeKeys, "right");
   }
 
   placeLeftCogs(inventory) {
     const placeKeys = [31, 55, 32, 56];
-    if (inventory.unFixedKeys.includes(44)) {
-      placeKeys.push(44);
-    }
     return this.greedyPlaceCogs2(inventory, placeKeys, "left");
   }
 
