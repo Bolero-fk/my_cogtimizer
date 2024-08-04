@@ -161,6 +161,13 @@ class MySolver {
     for (const keyToFix of keysToFix) {
       inventory.toFixed(keyToFix);
     }
+
+    const everythingCogs = Object.values(inventory.cogs)
+      .filter(cog => cog.boostRadius === "everything")
+
+    for (const everythingCog of everythingCogs) {
+      inventory.toFixed(everythingCog.key);
+    }
   }
 
   optimizeRestPos(inventory) {
