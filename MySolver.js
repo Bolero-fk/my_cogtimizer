@@ -152,7 +152,8 @@ class MySolver {
   }
 
   removeUselesMoves(inventory) {
-    const goal = inventory.score;
+    const goal1 = inventory.score;
+    const goal2 = this.ScoreFunction(inventory);
     const cogsToMove = Object.values(inventory.cogs)
       .filter((c) => c.key !== c.initialKey);
     // Check if move still changes something
@@ -161,14 +162,15 @@ class MySolver {
       const cog1Key = cog1.key;
       const cog2Key = cog1.initialKey;
       inventory.move(cog1Key, cog2Key);
-      const changed = inventory.score;
-      if (changed.buildRate === goal.buildRate
-        && changed.flaggy === goal.flaggy
-        && changed.expBonus === goal.expBonus
-        && changed.expBoost === goal.expBoost
-        && changed.flagBoost === goal.flagBoost) {
+      const changed1 = inventory.score;
+      const changed2 = this.ScoreFunction(inventory);
+      if (changed1.buildRate === goal1.buildRate
+        && changed1.flaggy === goal1.flaggy
+        && changed1.expBonus === goal1.expBonus
+        && changed1.expBoost === goal1.expBoost
+        && changed1.flagBoost === goal1.flagBoost
+        && changed2 === goal2) {
         console.log(`Removed useless move ${cog1Key} to ${cog2Key}`);
-
         continue;
       }
       inventory.move(cog1Key, cog2Key);
