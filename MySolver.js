@@ -94,7 +94,7 @@ class MySolver {
         tempInventory.toFixed(toKey);
       }
 
-      if (this.ScoreFunction(best) < this.ScoreFunction(tempInventory)) {
+      if (this.ScoreFunction(best) <= this.ScoreFunction(tempInventory)) {
         best = tempInventory;
       }
     }
@@ -104,7 +104,6 @@ class MySolver {
 
   greedyPlaceCogs2(inventory, placeKeys, cogType) {
     placeKeys = placeKeys.filter(key => inventory.unFixedKeys.includes(key));
-
 
     const cogs = Object.values(inventory.cogs)
       .filter(cog => cog.boostRadius === cogType)
@@ -138,7 +137,7 @@ class MySolver {
         this.placeLeftCogs(tempInventory);
         this.placeUpCogs(tempInventory);
 
-        if (this.ScoreFunction(best) < this.ScoreFunction(tempInventory)) {
+        if (this.ScoreFunction(best) <= this.ScoreFunction(tempInventory)) {
           best = tempInventory;
         }
       }
