@@ -58,10 +58,11 @@ class MySolver {
 
     this.placeRowCogs(state);
     const temp1_inventory = this.placeColCogs(state);
+    const temp2_inventory = this.placeCornersCogs(temp1_inventory);
 
-    this.optimizeRestPos(temp1_inventory);
-    this.removeUselesMoves(temp1_inventory);
-    return temp1_inventory;
+    this.optimizeRestPos(temp2_inventory);
+    this.removeUselesMoves(temp2_inventory);
+    return temp2_inventory;
   }
 
   placeRowCogs(inventory) {
@@ -88,7 +89,7 @@ class MySolver {
   greedyPlaceCogs(inventory, placeKeys, cogType) {
     const combinations = Util.generateCombinations(placeKeys.length, placeKeys.length / 2);
 
-    let best = null;;
+    let best = inventory;
     for (const combination of combinations) {
       for (let i = 0; i < placeKeys.length; i++) {
         if (!combination.includes(i)) {
@@ -96,20 +97,19 @@ class MySolver {
         }
       }
 
-      let temp_inventory = inventory.clone();
-      const colCogs = Object.values(temp_inventory.cogs)
+      const tempInventory = inventory.clone();
+      const cogs = Object.values(tempInventory.cogs)
         .filter(cog => cog.boostRadius === cogType)
         .sort(this.CompareCog);
 
-      for (let i = 0; i < combination.length; i++) {
-        const colCog = colCogs[i];
+      for (let i = 0; i < Math.min(combination.length, cogs.length); i++) {
         const toKey = placeKeys[combination[i]];
-        temp_inventory.move(colCog.key, toKey);
-        temp_inventory.toFixed(toKey);
+        tempInventory.move(cogs[i].key, toKey);
+        tempInventory.toFixed(toKey);
       }
 
-      if (best === null || this.ScoreFunction(best) < this.ScoreFunction(temp_inventory)) {
-        best = temp_inventory;
+      if (best === null || this.ScoreFunction(best) < this.ScoreFunction(tempInventory)) {
+        best = tempInventory;
       }
     }
 
@@ -119,6 +119,11 @@ class MySolver {
   placeColCogs(inventory) {
     const placeKeys = [5, 77, 89, 6, 78, 90];
     return this.greedyPlaceCogs(inventory, placeKeys, "column");
+  }
+
+  placeCornersCogs(inventory) {
+    const placeKeys = [15, 20, 63, 68];
+    return this.greedyPlaceCogs(inventory, placeKeys, "corners");
   }
 
   // I assume that characters exist at keys 41 and 42, 
