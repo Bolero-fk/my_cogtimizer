@@ -70,24 +70,8 @@ class MySolver {
   }
 
   placeRowCogs(inventory) {
-    const placeKeys = [36, 37, 38, 47, 46, 45, 39, 44];
-
-    const rowCogs = Object.values(inventory.cogs)
-      .filter(cog => cog.boostRadius === "row")
-      .sort(this.CompareCog);
-
-    for (let i = 0; i < placeKeys.length; i++) {
-      const rowCog = rowCogs[i];
-      for (const placeKey of placeKeys) {
-        if (inventory.get(placeKey).fixed) continue;
-
-        if (this.CompareCog(rowCog, inventory.get(placeKey)) >= 0) {
-          inventory.move(placeKey, rowCog.key);
-          inventory.toFixed(placeKey);
-          break;
-        }
-      }
-    }
+    const placeKeys = [36, 47, 37, 46, 38, 45, 39, 44];
+    return this.greedyPlaceCogs2(inventory, placeKeys, "row");
   }
 
   greedyPlaceCogs(inventory, placeKeys, cogType) {
@@ -103,7 +87,7 @@ class MySolver {
 
       const tempInventory = inventory.clone();
       const cogs = Object.values(tempInventory.cogs)
-        .filter(cog => cog.boostRadius === cogType)
+        .filter(cog => cog.boostRadius === cogType && this.CompareCog(cog, new Cog()) != 0)
         .sort(this.CompareCog);
 
       for (let i = 0; i < Math.min(combination.length, cogs.length); i++) {
@@ -124,7 +108,7 @@ class MySolver {
     console.log(cogType, placeKeys);
 
     const cogs = Object.values(inventory.cogs)
-      .filter(cog => cog.boostRadius === cogType)
+      .filter(cog => cog.boostRadius === cogType && this.CompareCog(cog, new Cog()) != 0)
       .sort(this.CompareCog);
 
     for (let i = 0; i < Math.min(placeKeys.length, cogs.length); i++) {
