@@ -35,7 +35,12 @@ class MySolver {
         return charaScores.reduce((sum, score) => sum + score.buildRate, 0);
       };
 
-      this.CompareCog = function (a, b) { return (Number(b.buildRadiusBoost) || 0) - (Number(a.buildRadiusBoost) || 0) }; 
+      this.CompareCog = function (a, b) {
+        if ((Number(b.buildRadiusBoost) || 0) !== (Number(a.buildRadiusBoost) || 0)) {
+          return (Number(b.buildRadiusBoost) || 0) - (Number(a.buildRadiusBoost) || 0);
+        }
+        return (Number(b.expBonus) || 0) - (Number(a.expBonus) || 0);
+      }; 
     }
     else if (mode === "playerEXP") {
       this.ScoreFunction = function (inventory) {
@@ -43,7 +48,12 @@ class MySolver {
         return charaScores.reduce((sum, score) => Math.min(sum, score.expBoost), Number.MAX_SAFE_INTEGER);
       };
 
-      this.CompareCog = function (a, b) { return (Number(b.expRadiusBoost) || 0) - (Number(a.expRadiusBoost) || 0) };
+      this.CompareCog = function (a, b) {
+        if ((Number(b.expRadiusBoost) || 0) !== (Number(a.expRadiusBoost) || 0)) {
+          return (Number(b.expRadiusBoost) || 0) - (Number(a.expRadiusBoost) || 0);
+        }
+        return (Number(b.expBonus) || 0) - (Number(a.expBonus) || 0);
+      };
     }
   }
 
