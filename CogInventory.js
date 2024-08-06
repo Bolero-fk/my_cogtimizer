@@ -420,7 +420,7 @@ class CogInventory {
 
     const board = this.board;
     const bonusGrid = Array(INV_ROWS).fill(0).map(() => { return Array(INV_COLUMNS).fill(0).map(() => { return { ...initialEffects } }) });
-    for (let key of this.unFixedKeys) {
+    for (let key of this.availableSlotKeys) {
       const entry = this.get(key);
       if (!entry.boostRadius) continue;
       const boosted = [];

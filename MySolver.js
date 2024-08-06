@@ -66,8 +66,6 @@ class MySolver {
 
     this.fixCharaAndAroundCogs(state);
 
-    this.placeRowCogs(state);
-
     const temp1_inventory = this.placeColCogs(state);
     const temp2_inventory = this.placeCornersCogs(temp1_inventory);
     const temp3_inventory = this.placeRestBoostCogs(temp2_inventory);
@@ -75,11 +73,6 @@ class MySolver {
     this.optimizeRestPos(temp3_inventory);
     this.removeUselesMoves(temp3_inventory);
     return temp3_inventory;
-  }
-
-  placeRowCogs(inventory) {
-    const placeKeys = [36, 47, 37, 46, 38, 45, 39, 44];
-    return this.greedyPlaceCogs2(inventory, placeKeys, "row");
   }
 
   greedyPlaceCogs(inventory, placeKeys, cogType) {
@@ -126,7 +119,7 @@ class MySolver {
   }
 
   placeRestBoostCogs(inventory) {
-    const placeKeys = [17, 18, 28, 51, 31, 55, 65, 66];
+    const placeKeys  = [17, 18, 39, 44, 65, 66];
 
     let best = inventory;
     for (let i1 = 0; i1 < placeKeys.length; i1++) {
@@ -142,6 +135,7 @@ class MySolver {
         tempInventory.move(yangCogs[1].key, placeKeys[i2]);
         tempInventory.toFixed(placeKeys[i2]);
 
+        this.placeRowCogs(tempInventory);
         this.placeDownCogs(tempInventory);
         this.placeRightCogs(tempInventory);
         this.placeLeftCogs(tempInventory);
@@ -156,6 +150,10 @@ class MySolver {
     return best;
   }
 
+  placeRowCogs(inventory) {
+    const placeKeys = [36, 47, 37, 46, 38, 45, 39, 44];
+    return this.greedyPlaceCogs2(inventory, placeKeys, "row");
+  }
 
   placeColCogs(inventory) {
     const placeKeys = [5, 77, 89, 6, 78, 90];
@@ -163,7 +161,7 @@ class MySolver {
   }
 
   placeCornersCogs(inventory) {
-    const placeKeys = [15, 20, 63, 68];
+    const placeKeys = [15, 63, 20, 68];
     return this.greedyPlaceCogs(inventory, placeKeys, "corners");
   }
 
@@ -173,7 +171,7 @@ class MySolver {
   }
 
   placeRightCogs(inventory) {
-    const placeKeys = [28, 51, 27, 52];
+    const placeKeys = [28, 52, 27, 51];
     return this.greedyPlaceCogs2(inventory, placeKeys, "right");
   }
 
@@ -204,7 +202,7 @@ class MySolver {
   }
 
   optimizeRestPos(inventory) {
-    for (let key of inventory.availableSlotKeys) {
+    for (let key of inventory.unFixedKeys) {
       const cog = inventory.get(key);
       if (cog.fixed) continue;
 
