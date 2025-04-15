@@ -338,7 +338,12 @@
         cogInvetory.load(save);
         console.log("Loading");
         sparePage.goto(0);
-        for (let i = 108; i < 200; i++) {
+
+        const maxKey = Object.values(cogInvetory.cogs).reduce((max, cog) => {
+          return cog.key > max ? cog.key : max;
+        }, -Infinity);
+
+        for (let i = 108; i <= maxKey; i++) {
           if (!cogInvetory.cogs[i]) continue;
           const index = (i - 108);
           const row = Math.floor(index / 3); // 3 since the spare board has 3 columns per row
