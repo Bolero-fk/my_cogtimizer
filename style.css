@@ -123,6 +123,7 @@ body {
     background-image: url("assets/arrows.png");
     background-repeat: no-repeat;
     background-position: 0px center;
+    text-align: "left";
 }
 .paginator > div:nth-child(1){
     transform: rotate(180deg);

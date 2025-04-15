@@ -119,7 +119,7 @@ class MySolver {
   }
 
   placeRestBoostCogs(inventory) {
-    const placeKeys = [17, 18, 28, 51, 31, 55, 65, 66, 39, 44];
+    const placeKeys = [17, 18, 39, 44, 65, 66];
 
     let best = inventory;
     for (let i1 = 0; i1 < placeKeys.length; i1++) {
@@ -161,7 +161,7 @@ class MySolver {
   }
 
   placeCornersCogs(inventory) {
-    const placeKeys = [15, 20, 63, 68];
+    const placeKeys = [15, 63, 20, 68];
     return this.greedyPlaceCogs(inventory, placeKeys, "corners");
   }
 
@@ -171,7 +171,7 @@ class MySolver {
   }
 
   placeRightCogs(inventory) {
-    const placeKeys = [28, 51, 27, 52];
+    const placeKeys = [28, 52, 27, 51];
     return this.greedyPlaceCogs2(inventory, placeKeys, "right");
   }
 

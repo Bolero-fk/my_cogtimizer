@@ -8,6 +8,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
     <link rel="stylesheet" href="style.css" />
+    <script type="text/javascript" src="CogTrashRecommender.js"></script>
     <script type="text/javascript" src="MySolver.js"></script>
     <script type="text/javascript" src="CogInventory.js"></script>
     <script type="text/javascript" src="BoardRenderer.js"></script>
@@ -336,6 +337,7 @@
 
       function load(save) {
         cogInvetory.load(save);
+        CogTrashRecommender.recommendTrash(cogInvetory);
         console.log("Loading");
         sparePage.goto(0);
 

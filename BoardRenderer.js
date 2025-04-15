@@ -131,10 +131,11 @@ class BoardRenderer {
         div.style.height = "100%";
         div.style.backgroundPosition = "center";
         div.style.color = "white";
+        div.style.textAlign = "right";
         col.appendChild(div);
       }
 
-      if (cog.icon.type === "blank") {
+      if (cog.icon === "Blank") {
         div.style.backgroundImage = "";
         div.innerHTML = "";
       } else if (cog.isPlayer) {
@@ -144,7 +145,7 @@ class BoardRenderer {
       }	else {
         div.style.removeProperty("background-size");
         div.style.backgroundImage = `url("${cog.icon.path}")`;
-        div.innerHTML = "";
+        div.innerHTML = cog.isTrashRecommended ? "❌" : "";
       }
     } else {
       if (cog.isFlag) {

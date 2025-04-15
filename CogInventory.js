@@ -58,6 +58,7 @@ class Cog {
     this.fixed = initialValues.fixed;
     this.blocked = initialValues.blocked;
     this._position = null;
+    this.isTrashRecommended = initialValues.isTrashRecommended;
   }
   get key() {
     return this._key
@@ -277,7 +278,8 @@ class CogInventory {
         flagBoost: c.j,
         nothing: c.k,
         fixed: false,
-        blocked: false
+        blocked: false,
+        isTrashRecommended: true,
       });
     });
     // Get the available board
