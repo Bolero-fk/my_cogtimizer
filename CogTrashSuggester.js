@@ -1,5 +1,5 @@
-class CogTrashRecommender {
-    static recommendTrash(inventory) {
+class CogTrashSuggester {
+    static suggestTrash(inventory) {
         const num = (v) => Number(v) || 0;
         const BuildBonusCompare = function (a, b) {
             if (num(b.buildRadiusBoost) !== num(a.buildRadiusBoost)) {
