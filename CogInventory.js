@@ -289,7 +289,7 @@ class CogInventory {
         nothing: c.k,
         fixed: c.h === "everything",
         blocked: false,
-        isTrashSuggested: true
+        isTrashSuggested: false
       });
     });
     // Get the available board
