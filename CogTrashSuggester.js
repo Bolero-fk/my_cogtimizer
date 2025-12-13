@@ -18,5 +18,20 @@ class CogTrashRecommender {
         const ExpCompare = function (a, b) {
             return num(b.expBonus) - num(a.expBonus);
         }
+
+        const KEEP_COUNTS_BY_RADIUS = {
+            "up": 4,
+            "right": 4,
+            "down": 4,
+            "left": 4,
+            "row": 8,
+            "column": 6,
+            "corners": 4,
+            "around": 8,
+            "everything": 8,
+        };
+
+        // BOARD_CAPACITY (8x12) - placeable directional cogs - two players
+        const MAX_EXP_KEEP_COUNT = 46;
     }
 }
