@@ -34,9 +34,33 @@ class CogTrashSuggester {
         // BOARD_CAPACITY (8x12) - placeable directional cogs - two players
         const MAX_EXP_KEEP_COUNT = 46;
 
-        // Initialize all cogs as trash-suggested; we will mark keepers as false below.
+        // Initialize trash-suggested flags for all cogs.
         for (const cog of Object.values(inventory.cogs)) {
-            if (!cog.isPlayer) cog.isTrashSuggested = true;
+            cog.isTrashSuggested = !cog.isPlayer;
         }
+
+        const markKeepTopN = (sortedCogs, n) => {
+            for (let i = 0; i < Math.min(n, sortedCogs.length); i++) {
+                inventory.cogs[sortedCogs[i].key].isTrashSuggested = false;
+            }
+        };
+
+        for (const [cogType, keepN] of Object.entries(KEEP_COUNTS_BY_RADIUS)) {
+            const buildRateCogs = Object.values(inventory.cogs)
+                .filter(cog => cog.boostRadius === cogType)
+                .sort(BuildBonusCompare);
+            markKeepTopN(buildRateCogs, keepN);
+
+            const expBonusCogs = Object.values(inventory.cogs)
+                .filter(cog => cog.boostRadius === cogType)
+                .sort(ExpBonusCompare);
+            markKeepTopN(expBonusCogs, keepN);
+        }
+
+        const expCogs = Object.values(inventory.cogs)
+            .filter(cog => !cog.isPlayer)
+            .filter(cog => cog.isTrashSuggested)
+            .sort(ExpCompare);
+        markKeepTopN(expCogs, MAX_EXP_KEEP_COUNT);
     }
 }
