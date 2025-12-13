@@ -144,7 +144,7 @@ class BoardRenderer {
       }	else {
         div.style.removeProperty("background-size");
         div.style.backgroundImage = `url("${cog.icon.path}")`;
-        div.innerHTML = "";
+        div.innerHTML = cog.isTrashSuggested ? "❌" : "";
       }
     } else {
       if (cog.isFlag) {

@@ -8,6 +8,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
 
     <link rel="stylesheet" href="style.css" />
+    <script type="text/javascript" src="CogTrashSuggester.js"></script>
     <script type="text/javascript" src="Solver.js"></script>
     <script type="text/javascript" src="CogInventory.js"></script>
     <script type="text/javascript" src="BoardRenderer.js"></script>
@@ -353,6 +354,7 @@
 
       function load(save) {
         cogInvetory.load(save);
+        CogTrashSuggester.suggestTrash(cogInvetory);
         console.log("Loading");
         // Fetch Gem-Shop flaggy upgrades
         document.getElementById("flaggyShop").value = cogInvetory.flaggyShopUpgrades;
