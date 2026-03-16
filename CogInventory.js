@@ -43,8 +43,8 @@ const Crystal_MAP = {
   ["5"]: "BlueGem"
 };
 const Tiny_MAP = {
-  ["m_"]: "Build",
-  ["ma"]: "Flaggy",
+  ["m_"]: "Flaggy",
+  ["ma"]: "Build",
   ["mb"]: "Xp",
 };
 const INV_ROWS = 8;
