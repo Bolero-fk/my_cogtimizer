@@ -267,26 +267,48 @@ class CogInventory {
       }
       return icon;
     });
-    const cogArray = Object.entries(cogRaw).map(([key, c]) => {
-      const keyNum = Number.parseInt(key);
-      return new Cog({
-        key: keyNum,
-        icon: cogIcons[keyNum] || "Blank",
-        buildRate: c.a,
-        isPlayer: c.b > 0,
-        expGain: c.b,
-        flaggy: c.c,
-        expBonus: c.d,
-        buildRadiusBoost: c.e,
-        expRadiusBoost: c.f,
-        flaggyRadiusBoost: c.g,
-        boostRadius: c.h,
-        flagBoost: c.j,
-        nothing: c.k,
-        fixed: c.h === "everything",
-        blocked: false
+
+    const allKeys = new Set([
+      ...Object.keys(cogRaw).map(Number),
+      ...cogIcons.map((_, i) => i),
+    ]);
+
+    const cogArray = [...allKeys]
+      .sort((a, b) => a - b)
+      .map((keyNum) => {
+        const c = cogRaw[keyNum] ?? {};
+
+        const icon = cogIcons[keyNum] || "Blank";
+        if (
+          icon &&
+          typeof icon === "object" &&
+          typeof icon.path === "string" &&
+          icon.path.startsWith("icons/cogs/Tiny")
+        ) {
+          c.a = 0;
+          c.b = 0;
+          c.c = 0;
+        }
+
+        return new Cog({
+          key: keyNum,
+          icon: cogIcons[keyNum] || "Blank",
+          buildRate: c.a,
+          isPlayer: c.b > 0,
+          expGain: c.b,
+          flaggy: c.c,
+          expBonus: c.d,
+          buildRadiusBoost: c.e,
+          expRadiusBoost: c.f,
+          flaggyRadiusBoost: c.g,
+          boostRadius: c.h,
+          flagBoost: c.j,
+          nothing: c.k,
+          fixed: c.h === "everything",
+          blocked: false
+        });
       });
-    });
+
     // Get the available board
     this.flagPose = JSON.parse(save["FlagP"]).filter(v=>v>=0); // Only first 4 are used
     const slots = JSON.parse(save["FlagU"]).map((n, i) => {
