@@ -35,8 +35,8 @@ const YIN_MAP = {
   ["A03"]: "Yin_Bottom_Right_Cog"
 };
 const Tiny_MAP = {
-  ["m_"]: "Build",
-  ["ma"]: "Flaggy",
+  ["m_"]: "Flaggy",
+  ["ma"]: "Build",
   ["mb"]: "Xp",
 };
 const INV_ROWS = 8;
@@ -259,7 +259,9 @@ class CogInventory {
       } else {
         icon.type = "cog";
         const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
-        if(parsed[1] === "Z") {
+        if (!parsed) {
+
+        } else if (parsed[1] === "Z") {
           icon.path = "icons/cogs/" + YIN_MAP[parsed[2]] + ".png";
         } else {
           icon.path = "icons/cogs/" + ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]] + ".png";
