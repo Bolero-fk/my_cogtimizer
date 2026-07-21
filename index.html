@@ -149,6 +149,16 @@
       const ROWS = 8;
       const COLUMNS = 12;
 
+      const SPARE_ROWS = 40;
+      const SPARE_COLUMNS = 3;
+      const SPARE_VISIBLE_ROWS = 5;
+      const SPARE_END_EXCLUSIVE = SPARE_START + SPARE_ROWS * SPARE_COLUMNS;
+
+      const OPTIMIZABLE = ["buildRate", "expBonus", "flaggy"];
+      
+      const getInput = (id) => Number.parseInt(document.getElementById(id).value);
+      const getFlaggyShop = getInput.bind(null, "flaggyShop");
+
       const createElem = function createElem(tagName, style=undefined) {
         const elem = document.createElement(tagName);
         if (style) {
@@ -165,8 +175,9 @@
       window.f = {};
 
       window.boardRenderer = new BoardRenderer(ROWS, COLUMNS, "board");
-      window.spareRenderer = new BoardRenderer(40, 3, "spare", 5);
+      window.spareRenderer = new BoardRenderer(SPARE_ROWS, SPARE_COLUMNS, "spare", SPARE_VISIBLE_ROWS);
       window.solver = new MySolver();
+
       window.cogInvetory = new CogInventory();
 
       window.sparePage = new Paginator("sparepage", window.spareRenderer._pageCount, 1);
@@ -341,17 +352,16 @@
         console.log("Loading");
         sparePage.goto(0);
 
-        const maxKey = Object.values(cogInvetory.cogs).reduce((max, cog) => {
-          return cog.key > max ? cog.key : max;
-        }, -Infinity);
+        for (let i = SPARE_START; i < SPARE_END_EXCLUSIVE; i++) {
+          const cog = cogInvetory.cogs[i];
+          if (!cog) continue;
 
-        for (let i = 108; i <= maxKey; i++) {
-          if (!cogInvetory.cogs[i]) continue;
-          const index = (i - 108);
-          const row = Math.floor(index / 3); // 3 since the spare board has 3 columns per row
-          const col = index % 3;
-          window.spareRenderer.set(row, col, cogInvetory.cogs[i]);
-        };
+          const index = i - SPARE_START;
+          const row = Math.floor(index / SPARE_COLUMNS);
+          const column = index % SPARE_COLUMNS;
+
+          window.spareRenderer.set(row, column, cog);
+        }
 
         const initScore = cogInvetory.score;
         f.printBoard(cogInvetory.board);

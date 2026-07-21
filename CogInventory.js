@@ -42,9 +42,17 @@ const Crystal_MAP = {
   ["4"]: "Emerald",
   ["5"]: "BlueGem"
 };
+const Tiny_MAP = {
+  ["m_"]: "Flaggy",
+  ["ma"]: "Build",
+  ["mb"]: "Xp",
+};
+
 const INV_ROWS = 8;
 const INV_COLUMNS = 12;
 const SPARE_START = 108;
+const SPARE_SLOT_COUNT = 120;
+const TINY_SLOT_START = SPARE_START + SPARE_SLOT_COUNT;
 
 class Cog {
   constructor(initialValues = {}) {
@@ -54,6 +62,7 @@ class Cog {
     this.buildRate = initialValues.buildRate;
     this.isPlayer = initialValues.isPlayer;
     this.isFlag = initialValues.isFlag;
+    this.isTinyCog = initialValues.isTinyCog ?? false;    
     this.expGain = initialValues.expGain;
     this.flaggy = initialValues.flaggy;
     this.expBonus = initialValues.expBonus;
@@ -104,9 +113,9 @@ class Cog {
 class FakeBoard {
   constructor(inventory) {
     this.inventory = inventory;
-    
+
     this.length = INV_ROWS;
-    this[Symbol.Iterator] = function*() {
+    this[Symbol.Iterator] = function* () {
       for (let s = 0; s < INV_ROWS; s++) yield s;
     }
 
@@ -131,7 +140,7 @@ class FakeBoard {
 }
 
 class CogInventory {
-  constructor(cogs={}, slots={}) {
+  constructor(cogs = {}, slots = {}) {
     this.cogs = cogs;
     this.slots = slots;
     this.flagPose = [];
@@ -142,23 +151,28 @@ class CogInventory {
     // Saved for performance
     this._board = new FakeBoard(this);
   }
-  
+
   get cogKeys() {
-    return Object.keys(this.cogs);
+    return Object.keys(this.cogs).filter((key) => {
+      const cog = this.cogs[key];
+      const keyNum = Number.parseInt(key);
+
+      return keyNum < TINY_SLOT_START && !cog.isTinyCog;
+    });
   }
-  
+
   get(key) {
     return this.cogs[key] || this.slots[key]
   }
-  
+
   static _saveGet(arr, ...indexes) {
-    while(indexes.length) {
+    while (indexes.length) {
       if (arr === undefined) break;
       arr = arr[indexes.splice(0, 1)[0]];
     }
     return arr;
   }
-  
+
   load(save) {
     this.unFixedKeys = [];
     this.availableSlotKeys = [];
@@ -236,7 +250,7 @@ class CogInventory {
         if (!hatFound) {
           hatIcons[v] = {
             type: "head",
-						path: "icons/head.png"
+            path: "icons/head.png"
           };
         }
       });
@@ -246,56 +260,99 @@ class CogInventory {
     this.flaggyShopUpgrades = JSON.parse(save["GemItemsPurchased"])[118];
     // Fetch the list of available cogs
     const cogRaw = JSON.parse(save["CogM"]);
-    const cogIcons = JSON.parse(save["CogO"]).map(c=>{
-      let icon = {
+    const cogNames = JSON.parse(save["CogO"]);
+
+    const cogIcons = cogNames.map((c, keyNum) => {
+        let icon = {
         type: "cog"
       };
-      if(c === "Blank") {
+
+      const setUnknownCogIcon = () => {
+        console.warn(`Unsupported cog name at key ${keyNum}: ${c}`);
+
+        icon.type = "unknown";
+        icon.path = "assets/cog_blank.png";
+      };
+
+      if (c === "Blank") {
         icon.type = "blank";
         icon.path = "assets/cog_blank.png"
-      } else if(c.startsWith("Player")) {
+      } else if (c.startsWith("Player")) {
         icon = hatIcons[c.substring(7)] || { type: "head", path: "icons/head.png" };
-      } else if(c === "CogY") {
+      } else if (c === "CogY") {
         icon.type = "cog";
         icon.path = "icons/cogs/Yang_Cog.png";
       } else if (c.startsWith("CogCry")) {
-        icon.type = "cog";
         const parsed = c.match(/^CogCry([0-5])$/);
-        icon.path = "icons/cogs/" + "Crystal_" + Crystal_MAP[parsed[1]] + ".png";
-      } else {
-        icon.type = "cog";
-        const parsed=c.match(/^Cog([0123YZ])(.{2,3})$/);
-        if(parsed[1] === "Z") {
-          icon.path = "icons/cogs/" + YIN_MAP[parsed[2]] + ".png";
+
+        if (!parsed) {
+          setUnknownCogIcon();
         } else {
+          icon.type = "cog";
+          icon.path = "icons/cogs/" + "Crystal_" + Crystal_MAP[parsed[1]] + ".png";
+        }
+      } else if (c.startsWith("CogSm")) {
+        const parsed = c.match(/^CogS(m_|ma|mb)(\d)$/);
+
+        if (!parsed) {
+          setUnknownCogIcon();
+        } else {
+          icon.type = "cog";
+          icon.path = "icons/cogs/Tiny_" +  Tiny_MAP[parsed[1]] + "_T" + parsed[2] + ".png";
+        }
+      } else {
+        const parsed = c.match(/^Cog([0123YZ])(.{2,3})$/);
+
+        if (!parsed) {
+          setUnknownCogIcon();
+        } else if (parsed[1] === "Z") {
+          icon.type = "cog";
+          icon.path =
+            "icons/cogs/" + YIN_MAP[parsed[2]] + ".png";
+        } else {
+          icon.type = "cog";
           icon.path = "icons/cogs/" + ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]] + ".png";
         }
       }
       return icon;
     });
-    const cogArray = Object.entries(cogRaw).map(([key, c]) => {
-      const keyNum = Number.parseInt(key);
-      return new Cog({
-        key: keyNum,
-        icon: cogIcons[keyNum] || "Blank",
-        buildRate: c.a,
-        isPlayer: c.b > 0,
-        expGain: c.b,
-        flaggy: c.c,
-        expBonus: c.d,
-        buildRadiusBoost: c.e,
-        expRadiusBoost: c.f,
-        flaggyRadiusBoost: c.g,
-        boostRadius: c.h,
-        flagBoost: c.j,
-        nothing: c.k,
-        fixed: false,
-        blocked: false,
-        isTrashSuggested: false
+
+    const allKeys = new Set([
+      ...Object.keys(cogRaw).map(Number),
+      ...cogIcons.map((_, i) => i),
+    ]);
+
+    const cogArray = [...allKeys]
+      .sort((a, b) => a - b)
+      .map((keyNum) => {
+        const c = cogRaw[keyNum] ?? {};
+        const icon = cogIcons[keyNum] || "Blank";
+        const isTinyCog =
+          cogNames[keyNum]?.startsWith("CogSm") ?? false;
+
+        return new Cog({
+            key: keyNum,
+            icon,
+            isTinyCog,
+            buildRate: isTinyCog ? 0 : c.a,
+            isPlayer: !isTinyCog && c.b > 0,
+            expGain: isTinyCog ? 0 : c.b,
+            flaggy: isTinyCog ? 0 : c.c,
+            expBonus: c.d,
+            buildRadiusBoost: c.e,
+            expRadiusBoost: c.f,
+            flaggyRadiusBoost: c.g,
+            boostRadius: c.h,
+            flagBoost: c.j,
+            nothing: c.k,
+            fixed: c.h === "everything",
+            blocked: false,
+            isTrashSuggested: false
+          });
       });
-    });
+
     // Get the available board
-    this.flagPose = JSON.parse(save["FlagP"]).filter(v=>v>=0); // Only first 4 are used
+    this.flagPose = JSON.parse(save["FlagP"]).filter(v => v >= 0); // Only first 4 are used
     const slots = JSON.parse(save["FlagU"]).map((n, i) => {
       if (n > 0 && this.flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true, icon: "Blank" });
       if (n !== -11) return new Cog({ key: i, fixed: true, blocked: true });
@@ -311,20 +368,25 @@ class CogInventory {
       }
     }
     this.cogs = {};
+
     for (const cog of cogArray) {
+      if (cog.key >= TINY_SLOT_START) {
+        continue;
+      }
+
       this.cogs[cog.key] = cog;
     }
 
     document.getElementById("notify").style.display = "none";
   }
-  
+
   clone() {
     const c = {};
-    for (let [k,v] of Object.entries(this.cogs)) {
+    for (let [k, v] of Object.entries(this.cogs)) {
       c[k] = new Cog(v);
     }
     const s = {};
-    for (let [k,v] of Object.entries(this.slots)) {
+    for (let [k, v] of Object.entries(this.slots)) {
       s[k] = new Cog(v);
     }
     const res = new CogInventory(c, s);
@@ -334,11 +396,11 @@ class CogInventory {
     res.unFixedKeys = [...this.unFixedKeys]
     return res;
   }
-  
+
   get board() {
     return this._board;
   }
-  
+
   get score() {
     if (this._score !== null) return this._score;
 
@@ -427,45 +489,45 @@ class CogInventory {
       const { x: j, y: i } = entry.position();
       switch (entry.boostRadius) {
         case "diagonal":
-          boosted.push([i-1, j-1],[i-1, j+1],[i+1, j-1],[i+1, j+1]);
+          boosted.push([i - 1, j - 1], [i - 1, j + 1], [i + 1, j - 1], [i + 1, j + 1]);
           break;
         case "adjacent":
-          boosted.push([i-1, j],[i, j+1],[i+1, j],[i, j-1]);
+          boosted.push([i - 1, j], [i, j + 1], [i + 1, j], [i, j - 1]);
           break;
         case "up":
-          boosted.push([i-2, j-1],[i-2, j],[i-2, j+1],[i-1, j-1],[i-1, j],[i-1, j+1]);
+          boosted.push([i - 2, j - 1], [i - 2, j], [i - 2, j + 1], [i - 1, j - 1], [i - 1, j], [i - 1, j + 1]);
           break;
         case "right":
-          boosted.push([i-1, j+2],[i, j+2],[i+1, j+2],[i-1, j+1],[i, j+1],[i+1, j+1]);
+          boosted.push([i - 1, j + 2], [i, j + 2], [i + 1, j + 2], [i - 1, j + 1], [i, j + 1], [i + 1, j + 1]);
           break;
         case "down":
-          boosted.push([i+2, j-1],[i+2, j],[i+2, j+1],[i+1, j-1],[i+1, j],[i+1, j+1]);
+          boosted.push([i + 2, j - 1], [i + 2, j], [i + 2, j + 1], [i + 1, j - 1], [i + 1, j], [i + 1, j + 1]);
           break;
         case "left":
-          boosted.push([i-1, j-2],[i, j-2],[i+1, j-2],[i-1, j-1],[i, j-1],[i+1, j-1]);
+          boosted.push([i - 1, j - 2], [i, j - 2], [i + 1, j - 2], [i - 1, j - 1], [i, j - 1], [i + 1, j - 1]);
           break;
         case "row":
           for (let k = 0; k < INV_COLUMNS; k++) {
-            if(j == k) continue;
+            if (j == k) continue;
             boosted.push([i, k]);
           }
           break;
         case "column":
           for (let k = 0; k < INV_ROWS; k++) {
-            if(i == k) continue;
+            if (i == k) continue;
             boosted.push([k, j]);
           }
           break;
         case "corners":
-          boosted.push([i-2, j-2],[i-2, j+2],[i+2, j-2],[i+2, j+2]);
+          boosted.push([i - 2, j - 2], [i - 2, j + 2], [i + 2, j - 2], [i + 2, j + 2]);
           break;
         case "around":
-          boosted.push([i-2, j],[i-1, j-1],[i-1, j],[i-1, j+1],[i, j-2],[i, j-1],[i, j+1],[i, j+2],[i+1, j-1],[i+1, j],[i+1, j+1],[i+2, j]);
+          boosted.push([i - 2, j], [i - 1, j - 1], [i - 1, j], [i - 1, j + 1], [i, j - 2], [i, j - 1], [i, j + 1], [i, j + 2], [i + 1, j - 1], [i + 1, j], [i + 1, j + 1], [i + 2, j]);
           break;
         case "everything":
           for (let k = 0; k < INV_ROWS; k++) {
             for (let l = 0; l < INV_COLUMNS; l++) {
-              if(i === k && j === l) continue;
+              if (i === k && j === l) continue;
               boosted.push([k, l]);
             }
           }
@@ -476,16 +538,16 @@ class CogInventory {
       for (const boostCord of boosted) {
         const bonus = CogInventory._saveGet(bonusGrid, ...boostCord);
         if (!bonus) continue;
-        bonus.buildRate += entry.buildRadiusBoost  || 0;
-        bonus.flaggy    += entry.flaggyRadiusBoost || 0;
-        bonus.expBoost  += entry.expRadiusBoost    || 0;
-        bonus.flagBoost += entry.flagBoost         || 0;
+        bonus.buildRate += entry.buildRadiusBoost || 0;
+        bonus.flaggy += entry.flaggyRadiusBoost || 0;
+        bonus.expBoost += entry.expRadiusBoost || 0;
+        bonus.flagBoost += entry.flagBoost || 0;
       }
     }
 
     return bonusGrid;
   }
-  
+
   move(pos1, pos2) {
     this._score = null;
     if (Array.isArray(pos1)) {
@@ -498,17 +560,17 @@ class CogInventory {
     }
     const temp = this.cogs[pos2];
     this.cogs[pos2] = this.cogs[pos1];
-		if (!this.cogs[pos2]) {
-			delete this.cogs[pos2];
-		} else {
-			this.cogs[pos2].key = pos2;
-		}
+    if (!this.cogs[pos2]) {
+      delete this.cogs[pos2];
+    } else {
+      this.cogs[pos2].key = pos2;
+    }
     this.cogs[pos1] = temp;
-		if (!this.cogs[pos1]) {
-			delete this.cogs[pos1];
-		} else {
-			this.cogs[pos1].key = pos1;
-		}
+    if (!this.cogs[pos1]) {
+      delete this.cogs[pos1];
+    } else {
+      this.cogs[pos1].key = pos1;
+    }
   }
 
   toFixed(key) {
