@@ -370,9 +370,9 @@ class CogInventory {
     // Get the available board
     this.flagPose = JSON.parse(save["FlagP"]).filter(v => v >= 0); // Only first 4 are used
     const slots = JSON.parse(save["FlagU"]).map((n, i) => {
-      if (n > 0 && this.flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true, icon: "Blank" });
-      if (n !== -11) return new Cog({ key: i, fixed: true, blocked: true });
-      return new Cog({ key: i, icon: "Blank" });
+      if (n > 0 && this.flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true, icon: blankCogIcon});
+      if (n !== -11) return new Cog({ key: i, fixed: true, blocked: true, icon: blankCogIcon});
+      return new Cog({ key: i, icon: blankCogIcon });
     });
     // Map slots and cogs to a key -> obj map
     this.slots = {};
