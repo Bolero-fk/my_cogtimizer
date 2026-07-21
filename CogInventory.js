@@ -114,26 +114,33 @@ class FakeBoard {
     this.inventory = inventory;
 
     this.length = INV_ROWS;
-    this[Symbol.Iterator] = function* () {
-      for (let s = 0; s < INV_ROWS; s++) yield s;
-    }
+    this[Symbol.iterator] = function* () {
+      for (let row = 0; row < INV_ROWS; row++) {
+        yield this[row];
+      }
+    };
 
     for (let i = 0; i < INV_ROWS; i++) {
       const columnProxy = {
         length: INV_COLUMNS,
-        [Symbol.Iterator]: function* () {
-          for (let s = 0; s < INV_COLUMNS; s++) yield s;
+
+        [Symbol.iterator]: function* () {
+          for (let column = 0; column < INV_COLUMNS; column++) {
+            yield this[column];
+          }
         }
-      }
+      };
+
       for (let j = 0; j < INV_COLUMNS; j++) {
         const key = i * INV_COLUMNS + j;
         Object.defineProperty(columnProxy, j, {
           get: () => this.inventory.get(key)
         });
       }
+
       Object.defineProperty(this, i, {
         get: () => columnProxy
-      });
+      });      
     }
   }
 }
