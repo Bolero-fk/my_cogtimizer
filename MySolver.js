@@ -61,6 +61,11 @@ class MySolver {
     return new Promise(r => setTimeout(r, 1));
   }
 
+  getOptimizableCogs(inventory) {
+    return Object.values(inventory.cogs)
+      .filter(cog => !cog.isTinyCog);
+  }
+
   async solve(inventory) {
     const state = inventory.clone();
 
@@ -87,7 +92,7 @@ class MySolver {
       }
 
       const tempInventory = inventory.clone();
-      const cogs = Object.values(tempInventory.cogs)
+      const cogs = this.getOptimizableCogs(tempInventory)
         .filter(cog => cog.boostRadius === cogType)
         .sort(this.CompareCog);
 
@@ -108,7 +113,7 @@ class MySolver {
   greedyPlaceCogs2(inventory, placeKeys, cogType) {
     placeKeys = placeKeys.filter(key => inventory.unFixedKeys.includes(key));
 
-    const cogs = Object.values(inventory.cogs)
+    const cogs = this.getOptimizableCogs(inventory)
       .filter(cog => cog.boostRadius === cogType)
       .sort(this.CompareCog);
 
@@ -126,8 +131,8 @@ class MySolver {
       for (let i2 = i1 + 1; i2 < placeKeys.length; i2++) {
 
         const tempInventory = inventory.clone();
-        const yangCogs = Object.values(inventory.cogs)
-          .filter(cog => cog.boostRadius === "around" && !cog.fixed)
+        const yangCogs = this.getOptimizableCogs(inventory)
+          .filter(cog => cog.boostRadius === "around" && !cog.fixed);
 
         tempInventory.move(yangCogs[0].key, placeKeys[i1]);
         tempInventory.toFixed(placeKeys[i1]);
@@ -193,8 +198,8 @@ class MySolver {
       inventory.toFixed(keyToFix);
     }
 
-    const everythingCogs = Object.values(inventory.cogs)
-      .filter(cog => cog.boostRadius === "everything")
+    const everythingCogs = this.getOptimizableCogs(inventory)
+      .filter(cog => cog.boostRadius === "everything");
 
     for (const everythingCog of everythingCogs) {
       inventory.toFixed(everythingCog.key);
@@ -206,9 +211,12 @@ class MySolver {
       const cog = inventory.get(key);
       if (cog.fixed) continue;
 
-      const spareCogs = Object.keys(inventory.cogs)
-        .filter(key => Number(key) >= 108)
-        .map(key => inventory.get(key));
+      const spareCogs = this.getOptimizableCogs(inventory)
+        .filter(cog => cog.position().location === "spare");
+
+      if (spareCogs.length === 0) {
+        continue;
+      }
 
       const maxExpCog = spareCogs.reduce((maxCog, currentCog) => {
         const maxCogExp = Number(maxCog.expBonus) || 0;
@@ -225,8 +233,8 @@ class MySolver {
   removeUselesMoves(inventory) {
     const goal1 = inventory.score;
     const goal2 = this.ScoreFunction(inventory);
-    const cogsToMove = Object.values(inventory.cogs)
-      .filter((c) => c.key !== c.initialKey);
+    const cogsToMove = this.getOptimizableCogs(inventory)
+      .filter(cog => cog.key !== cog.initialKey);
     // Check if move still changes something
     for (let i = 0; i < cogsToMove.length; i++) {
       const cog1 = cogsToMove[i];
