@@ -419,15 +419,21 @@
       }
 
       document.getElementById("load").addEventListener("click", () => {
-        const input = document.getElementById("input").value;
+        const input = document.getElementById("input").value.trim();
+
+        let save;
         try {
-          const save = JSON.parse(input);
-          load(save);
-        } catch (e) {
-          if (e instanceof SyntaxError) {
+          save = JSON.parse(input);
+        } catch (error) {
+          if (error instanceof SyntaxError) {
             fetchAndLoadConfig(input);
+            return;
           }
+
+          throw error;
         }
+
+        load(save);
       });
       
       let optimalSteps = undefined;
