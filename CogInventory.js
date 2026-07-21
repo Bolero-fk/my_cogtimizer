@@ -326,18 +326,18 @@ class CogInventory {
       ...cogIcons.map((_, i) => i),
     ]);
 
+    const blankCogIcon = {
+      type: "blank",
+      path: "assets/cog_blank.png"
+    };
+
     const cogArray = [...allKeys]
       .sort((a, b) => a - b)
       .map((keyNum) => {
         const c = cogRaw[keyNum] ?? {};
+        const icon = cogIcons[keyNum] ?? blankCogIcon;
 
-        const icon = cogIcons[keyNum] || "Blank";
-        if (
-          icon &&
-          typeof icon === "object" &&
-          typeof icon.path === "string" &&
-          icon.path.startsWith("icons/cogs/Tiny")
-        ) {
+        if (icon.path.startsWith("icons/cogs/Tiny")) {
           c.a = 0;
           c.b = 0;
           c.c = 0;
