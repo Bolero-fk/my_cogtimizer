@@ -310,7 +310,11 @@
         let tuple;
         while (tuple = Object.entries(interimCogs)[0]) {
           const [key, cog] = tuple;
-          const targetCog = interimCogs[cog.key] || { icon: "Blank", key, position: cog.position.bind(cog) };
+          const targetCog = interimCogs[cog.key] || {
+            icon: {type: "blank", path: "assets/cog_blank.png"},
+            key,
+            position: cog.position.bind(cog)
+          };
           if (targetCog === cog) {
             delete interimCogs[key];
             continue;
