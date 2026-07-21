@@ -248,10 +248,18 @@ class CogInventory {
     this.flaggyShopUpgrades = JSON.parse(save["GemItemsPurchased"])[118];
     // Fetch the list of available cogs
     const cogRaw = JSON.parse(save["CogM"]);
-    const cogIcons = JSON.parse(save["CogO"]).map(c => {
+    const cogIcons = JSON.parse(save["CogO"]).map((c, keyNum) => {
       let icon = {
         type: "cog"
       };
+
+      const setUnknownCogIcon = () => {
+        console.warn(`Unsupported cog name at key ${keyNum}: ${c}`);
+
+        icon.type = "unknown";
+        icon.path = "assets/cog_blank.png";
+      };
+
       if (c === "Blank") {
         icon.type = "blank";
         icon.path = "assets/cog_blank.png"
@@ -261,19 +269,34 @@ class CogInventory {
         icon.type = "cog";
         icon.path = "icons/cogs/Yang_Cog.png";
       } else if (c.startsWith("CogCry")) {
-        icon.type = "cog";
         const parsed = c.match(/^CogCry([0-5])$/);
-        icon.path = "icons/cogs/" + "Crystal_" + Crystal_MAP[parsed[1]] + ".png";
-      } else if (c.startsWith("CogSm")) {
-        icon.type = "cog";
-        const parsed = c.match(/^CogS(m_|ma|mb)(\d)$/);
-        icon.path = "icons/cogs/Tiny_" + Tiny_MAP[parsed[1]] + "_T" + parsed[2] + ".png";
-      } else {
-        icon.type = "cog";
-        const parsed = c.match(/^Cog([0123YZ])(.{2,3})$/);
-        if (parsed[1] === "Z") {
-          icon.path = "icons/cogs/" + YIN_MAP[parsed[2]] + ".png";
+
+        if (!parsed) {
+          setUnknownCogIcon();
         } else {
+          icon.type = "cog";
+          icon.path = "icons/cogs/" + "Crystal_" + Crystal_MAP[parsed[1]] + ".png";
+        }
+      } else if (c.startsWith("CogSm")) {
+        const parsed = c.match(/^CogS(m_|ma|mb)(\d)$/);
+
+        if (!parsed) {
+          setUnknownCogIcon();
+        } else {
+          icon.type = "cog";
+          icon.path = "icons/cogs/Tiny_" +  Tiny_MAP[parsed[1]] + "_T" + parsed[2] + ".png";
+        }
+      } else {
+        const parsed = c.match(/^Cog([0123YZ])(.{2,3})$/);
+
+        if (!parsed) {
+          setUnknownCogIcon();
+        } else if (parsed[1] === "Z") {
+          icon.type = "cog";
+          icon.path =
+            "icons/cogs/" + YIN_MAP[parsed[2]] + ".png";
+        } else {
+          icon.type = "cog";
           icon.path = "icons/cogs/" + ICON_TYPE_MAP[parsed[2]] + "_" + ICON_QUALITY_MAP[parsed[1]] + ".png";
         }
       }
