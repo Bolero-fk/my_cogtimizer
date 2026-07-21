@@ -162,7 +162,11 @@ class CogInventory {
       const cog = this.cogs[key];
       const keyNum = Number.parseInt(key);
 
-      return keyNum < TINY_SLOT_START && !cog.isTinyCog;
+      return (
+        keyNum < TINY_SLOT_START &&
+        !cog.isTinyCog &&
+        cog.position().location !== "build"
+      );
     });
   }
 
@@ -378,7 +382,7 @@ class CogInventory {
     this.slots = {};
     for (const slot of slots) {
       this.slots[slot.key] = slot;
-      if (!slot.fixed) {
+      if (!slot.fixed && slot.position().location === "board") {
         this.availableSlotKeys.push(slot.key);
       }
     }
