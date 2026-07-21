@@ -155,6 +155,8 @@ class BoardRenderer {
         div.innerHTML = "";
       }
     } else {
+      col.replaceChildren();
+
       if (cog.isFlag) {
         col.style.backgroundImage = `url("icons/cogs/flag.png")`;
       }
