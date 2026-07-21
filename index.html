@@ -375,7 +375,6 @@
 
         for (let i = SPARE_START; i < SPARE_END_EXCLUSIVE; i++) {
           const cog = cogInvetory.cogs[i];
-          if (!cog) continue;
 
           const index = i - SPARE_START;
           const row = Math.floor(index / SPARE_COLUMNS);
