@@ -363,6 +363,10 @@
       }
 
       function load(save) {
+        g.best = null;
+        optimalSteps = [];
+        stepsPage.reset(0);
+
         cogInvetory.load(save);
         console.log("Loading");
         // Fetch Gem-Shop flaggy upgrades
