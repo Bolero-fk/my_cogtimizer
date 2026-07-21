@@ -47,9 +47,12 @@ const Tiny_MAP = {
   ["ma"]: "Build",
   ["mb"]: "Xp",
 };
+
 const INV_ROWS = 8;
 const INV_COLUMNS = 12;
 const SPARE_START = 108;
+const SPARE_SLOT_COUNT = 120;
+const TINY_SLOT_START = SPARE_START + SPARE_SLOT_COUNT;
 
 class Cog {
   constructor(initialValues = {}) {
@@ -59,6 +62,7 @@ class Cog {
     this.buildRate = initialValues.buildRate;
     this.isPlayer = initialValues.isPlayer;
     this.isFlag = initialValues.isFlag;
+    this.isTinyCog = initialValues.isTinyCog ?? false;    
     this.expGain = initialValues.expGain;
     this.flaggy = initialValues.flaggy;
     this.expBonus = initialValues.expBonus;
@@ -147,7 +151,12 @@ class CogInventory {
   }
 
   get cogKeys() {
-    return Object.keys(this.cogs);
+    return Object.keys(this.cogs).filter((key) => {
+      const cog = this.cogs[key];
+      const keyNum = Number.parseInt(key);
+
+      return keyNum < TINY_SLOT_START && !cog.isTinyCog;
+    });
   }
 
   get(key) {
@@ -248,8 +257,10 @@ class CogInventory {
     this.flaggyShopUpgrades = JSON.parse(save["GemItemsPurchased"])[118];
     // Fetch the list of available cogs
     const cogRaw = JSON.parse(save["CogM"]);
-    const cogIcons = JSON.parse(save["CogO"]).map((c, keyNum) => {
-      let icon = {
+    const cogNames = JSON.parse(save["CogO"]);
+
+    const cogIcons = cogNames.map((c, keyNum) => {
+        let icon = {
         type: "cog"
       };
 
@@ -328,6 +339,7 @@ class CogInventory {
         return new Cog({
           key: keyNum,
           icon: cogIcons[keyNum] || "Blank",
+          isTinyCog: cogNames[keyNum]?.startsWith("CogSm") ?? false,
           buildRate: c.a,
           isPlayer: c.b > 0,
           expGain: c.b,
@@ -360,7 +372,12 @@ class CogInventory {
       }
     }
     this.cogs = {};
+
     for (const cog of cogArray) {
+      if (cog.key >= TINY_SLOT_START) {
+        continue;
+      }
+
       this.cogs[cog.key] = cog;
     }
 
