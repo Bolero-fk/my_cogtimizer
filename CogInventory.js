@@ -239,14 +239,18 @@ class CogInventory {
             const eqName = slots[i];
             if (eqName.indexOf("Hats") !== -1) {
               const match = eqName.match(/EquipmentHats(\d+)(?:_x1)?/);
-              if (match.length === 2) {
-                const index = parseInt(match[1]);
-                hatIcons[v] = {
-                  type: "hat",
-                  path: window.player.render(index)
-                };
-                hatFound = true;
+
+              if (!match) {
+                console.warn(`Unsupported hat equipment name: ${eqName}`);
+                continue;
               }
+
+              const index = Number.parseInt(match[1], 10);
+              hatIcons[v] = {
+                type: "hat",
+                path: window.player.render(index)
+              };
+              hatFound = true;
               break;
             }
           }
