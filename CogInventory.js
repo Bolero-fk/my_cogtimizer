@@ -217,12 +217,12 @@ class CogInventory {
         } else if (classNameIndex >= 19) {
           // Archer
           window.player._colorHead(.58, 1, .6);
-        } else if (classNameIndex >= 7) {
-          // Warrior
-          window.player._colorHead(1, .77, .75);
         } else if (classNameIndex === 9) {
           // Squire
           window.player._colorHead(1, 1, 0);
+        } else if (classNameIndex >= 7) {
+          // Warrior
+          window.player._colorHead(1, .77, .75);
         } else {
           // Beginner
           // Journeyman
