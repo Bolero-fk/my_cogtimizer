@@ -105,7 +105,10 @@ class BoardRenderer {
       cog = {
         fixed: false,
         blocked: false,
-        icon: "Blank"
+        icon: {
+          type: "blank",
+          path: "assets/cog_blank.png"
+        }
       };
     }
 
