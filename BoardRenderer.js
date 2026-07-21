@@ -105,7 +105,10 @@ class BoardRenderer {
       cog = {
         fixed: false,
         blocked: false,
-        icon: "Blank"
+        icon: {
+          type: "blank",
+          path: "assets/cog_blank.png"
+        }
       };
     }
 
@@ -152,6 +155,8 @@ class BoardRenderer {
         div.innerHTML = cog.isTrashSuggested ? "❌" : "";
       }
     } else {
+      col.replaceChildren();
+
       if (cog.isFlag) {
         col.style.backgroundImage = `url("icons/cogs/flag.png")`;
       }

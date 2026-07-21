@@ -294,7 +294,11 @@
         let tuple;
         while (tuple = Object.entries(interimCogs)[0]) {
           const [key, cog] = tuple;
-          const targetCog = interimCogs[cog.key] || { icon: "Blank", key, position: cog.position.bind(cog) };
+          const targetCog = interimCogs[cog.key] || {
+            icon: {type: "blank", path: "assets/cog_blank.png"},
+            key,
+            position: cog.position.bind(cog)
+          };
           if (targetCog === cog) {
             delete interimCogs[key];
             continue;
@@ -347,6 +351,10 @@
       }
 
       function load(save) {
+        g.best = null;
+        optimalSteps = [];
+        stepsPage.reset(0);
+
         cogInvetory.load(save);
         CogTrashSuggester.suggestTrash(cogInvetory);
         console.log("Loading");
@@ -354,7 +362,6 @@
 
         for (let i = SPARE_START; i < SPARE_END_EXCLUSIVE; i++) {
           const cog = cogInvetory.cogs[i];
-          if (!cog) continue;
 
           const index = i - SPARE_START;
           const row = Math.floor(index / SPARE_COLUMNS);
@@ -376,33 +383,55 @@
       }
       
       function fetchAndLoadConfig(username) {
-        console.log("Trying to fetch", username);
-        if (username.length > 0) {
-          const headers = {
-            "Content-Type": "text/json",
-            method: "GET"
-          };
-          fetch(`https://cdn.idleonefficiency.com/profiles/${username.toLowerCase()}.json`, headers)
-          .then((response) => {
-            return response.json();
-          }).then((json) => {
-            load(json);
-          }).catch((reason) => {
-            console.log(reason);
-          });
+        const normalizedUsername = username.trim().toLowerCase();
+
+        if (normalizedUsername.length === 0) {
+          return;
         }
+
+        console.log("Trying to fetch", normalizedUsername);
+
+        const profileUrl =
+          `https://cdn.idleonefficiency.com/profiles/` +
+          `${encodeURIComponent(normalizedUsername)}.json`;
+
+        fetch(profileUrl)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Failed to fetch profile: ${response.status} ${response.statusText}`
+              );
+            }
+
+            return response.json();
+          })
+          .then((json) => {
+            load(json);
+          })
+          .catch((error) => {
+            console.error(
+              `Failed to load profile "${normalizedUsername}":`,
+              error
+            );
+          });
       }
 
       document.getElementById("load").addEventListener("click", () => {
-        const input = document.getElementById("input").value;
+        const input = document.getElementById("input").value.trim();
+
+        let save;
         try {
-          const save = JSON.parse(input);
-          load(save);
-        } catch (e) {
-          if (e instanceof SyntaxError) {
+          save = JSON.parse(input);
+        } catch (error) {
+          if (error instanceof SyntaxError) {
             fetchAndLoadConfig(input);
+            return;
           }
+
+          throw error;
         }
+
+        load(save);
       });
       
       let optimalSteps = undefined;

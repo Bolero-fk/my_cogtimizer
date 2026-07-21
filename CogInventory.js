@@ -115,26 +115,33 @@ class FakeBoard {
     this.inventory = inventory;
 
     this.length = INV_ROWS;
-    this[Symbol.Iterator] = function* () {
-      for (let s = 0; s < INV_ROWS; s++) yield s;
-    }
+    this[Symbol.iterator] = function* () {
+      for (let row = 0; row < INV_ROWS; row++) {
+        yield this[row];
+      }
+    };
 
     for (let i = 0; i < INV_ROWS; i++) {
       const columnProxy = {
         length: INV_COLUMNS,
-        [Symbol.Iterator]: function* () {
-          for (let s = 0; s < INV_COLUMNS; s++) yield s;
+
+        [Symbol.iterator]: function* () {
+          for (let column = 0; column < INV_COLUMNS; column++) {
+            yield this[column];
+          }
         }
-      }
+      };
+
       for (let j = 0; j < INV_COLUMNS; j++) {
         const key = i * INV_COLUMNS + j;
         Object.defineProperty(columnProxy, j, {
           get: () => this.inventory.get(key)
         });
       }
+
       Object.defineProperty(this, i, {
         get: () => columnProxy
-      });
+      });      
     }
   }
 }
@@ -213,12 +220,12 @@ class CogInventory {
         } else if (classNameIndex >= 19) {
           // Archer
           window.player._colorHead(.58, 1, .6);
-        } else if (classNameIndex >= 7) {
-          // Warrior
-          window.player._colorHead(1, .77, .75);
         } else if (classNameIndex === 9) {
           // Squire
           window.player._colorHead(1, 1, 0);
+        } else if (classNameIndex >= 7) {
+          // Warrior
+          window.player._colorHead(1, .77, .75);
         } else {
           // Beginner
           // Journeyman
@@ -235,14 +242,18 @@ class CogInventory {
             const eqName = slots[i];
             if (eqName.indexOf("Hats") !== -1) {
               const match = eqName.match(/EquipmentHats(\d+)(?:_x1)?/);
-              if (match.length === 2) {
-                const index = parseInt(match[1]);
-                hatIcons[v] = {
-                  type: "hat",
-                  path: window.player.render(index)
-                };
-                hatFound = true;
+
+              if (!match) {
+                console.warn(`Unsupported hat equipment name: ${eqName}`);
+                continue;
               }
+
+              const index = Number.parseInt(match[1], 10);
+              hatIcons[v] = {
+                type: "hat",
+                path: window.player.render(index)
+              };
+              hatFound = true;
               break;
             }
           }
@@ -322,14 +333,25 @@ class CogInventory {
       ...cogIcons.map((_, i) => i),
     ]);
 
+    const blankCogIcon = {
+      type: "blank",
+      path: "assets/cog_blank.png"
+    };
+
     const cogArray = [...allKeys]
       .sort((a, b) => a - b)
       .map((keyNum) => {
         const c = cogRaw[keyNum] ?? {};
-        const icon = cogIcons[keyNum] || "Blank";
+        const icon = cogIcons[keyNum] ?? blankCogIcon;
         const isTinyCog =
           cogNames[keyNum]?.startsWith("CogSm") ?? false;
 
+        if (isTinyCog) {
+          c.a = 0;
+          c.b = 0;
+          c.c = 0;
+        }
+        
         return new Cog({
             key: keyNum,
             icon,
@@ -354,9 +376,9 @@ class CogInventory {
     // Get the available board
     this.flagPose = JSON.parse(save["FlagP"]).filter(v => v >= 0); // Only first 4 are used
     const slots = JSON.parse(save["FlagU"]).map((n, i) => {
-      if (n > 0 && this.flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true, icon: "Blank" });
-      if (n !== -11) return new Cog({ key: i, fixed: true, blocked: true });
-      return new Cog({ key: i, icon: "Blank" });
+      if (n > 0 && this.flagPose.includes(i)) return new Cog({ key: i, fixed: true, blocked: true, isFlag: true, icon: blankCogIcon});
+      if (n !== -11) return new Cog({ key: i, fixed: true, blocked: true, icon: blankCogIcon});
+      return new Cog({ key: i, icon: blankCogIcon });
     });
     // Map slots and cogs to a key -> obj map
     this.slots = {};
