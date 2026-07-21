@@ -401,21 +401,37 @@
       }
       
       function fetchAndLoadConfig(username) {
-        console.log("Trying to fetch", username);
-        if (username.length > 0) {
-          const headers = {
-            "Content-Type": "text/json",
-            method: "GET"
-          };
-          fetch(`https://cdn.idleonefficiency.com/profiles/${username.toLowerCase()}.json`, headers)
-          .then((response) => {
-            return response.json();
-          }).then((json) => {
-            load(json);
-          }).catch((reason) => {
-            console.log(reason);
-          });
+        const normalizedUsername = username.trim().toLowerCase();
+
+        if (normalizedUsername.length === 0) {
+          return;
         }
+
+        console.log("Trying to fetch", normalizedUsername);
+
+        const profileUrl =
+          `https://cdn.idleonefficiency.com/profiles/` +
+          `${encodeURIComponent(normalizedUsername)}.json`;
+
+        fetch(profileUrl)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `Failed to fetch profile: ${response.status} ${response.statusText}`
+              );
+            }
+
+            return response.json();
+          })
+          .then((json) => {
+            load(json);
+          })
+          .catch((error) => {
+            console.error(
+              `Failed to load profile "${normalizedUsername}":`,
+              error
+            );
+          });
       }
 
       document.getElementById("load").addEventListener("click", () => {
